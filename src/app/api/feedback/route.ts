@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
             language?: string;
         };
 
-        if (!transcript || transcript.length < 2) {
-            return NextResponse.json({ error: 'Transcript too short to analyze' }, { status: 400 });
+        if (!transcript || transcript.length === 0) {
+            return NextResponse.json({ error: 'Empty transcript' }, { status: 400 });
         }
 
         const scenario = getScenario(scenarioId);

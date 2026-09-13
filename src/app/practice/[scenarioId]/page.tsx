@@ -181,24 +181,41 @@ export default function PracticePage({ params }: PracticePageProps) {
         });
 
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        if (audioBlob.size < 1000) return; // too short / silence
+        console.log('[Recording] Audio blob size:', audioBlob.size, 'bytes');
+        
+        if (audioBlob.size < 500) {
+            console.warn('[Recording] Audio too short or silent, skipping transcription');
+            return; // too short / silence
+        }
 
         setIsAIThinking(true);
         try {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
             formData.append('language', language);
+            console.log('[Recording] Sending audio to transcribe with language:', language);
+            
             const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
             const data = await res.json();
-            if (data.error || !data.text?.trim()) {
+            
+            if (data.error) {
+                console.error('[Recording] Transcription error:', data.error);
                 setIsAIThinking(false);
                 return;
             }
+            
+            if (!data.text?.trim()) {
+                console.warn('[Recording] Empty transcription result');
+                setIsAIThinking(false);
+                return;
+            }
+            
+            console.log('[Recording] Transcription success:', data.text);
             addMessage({ role: 'user', content: data.text });
             const updated = [...messages, { role: 'user' as const, content: data.text, timestamp: Date.now() }];
             await getAIResponse(updated);
         } catch (err) {
-            console.error('transcribe error', err);
+            console.error('[Recording] Error during transcription:', err);
             setIsAIThinking(false);
         }
     }, [setIsRecording, setIsAIThinking, addMessage, messages, getAIResponse, language]);

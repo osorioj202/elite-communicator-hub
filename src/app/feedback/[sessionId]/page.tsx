@@ -52,6 +52,13 @@ export default function FeedbackPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transcript: result.transcript, scenarioId: result.scenarioId, language }),
                 });
+                
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    const errorMessage = errorData?.error || 'Failed to generate feedback';
+                    throw new Error(errorMessage);
+                }
+
                 const data: FeedbackResult = await res.json();
                 if ('error' in data) throw new Error(String((data as { error: string }).error));
 
@@ -59,8 +66,9 @@ export default function FeedbackPage() {
                 // Persist feedback into the session
                 saveResult({ ...result, feedback: data });
             } catch (err) {
-                console.error(err);
-                setError('Could not generate feedback. Check your OpenAI API key.');
+                console.error('[Feedback Error]', err);
+                const errorMsg = err instanceof Error ? err.message : 'Could not generate feedback';
+                setError(`${errorMsg}. Check your OpenAI API key and ensure you recorded a conversation.`);
             } finally {
                 setIsLoading(false);
             }
