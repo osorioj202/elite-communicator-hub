@@ -3,27 +3,32 @@
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFlashcardStore } from '@/store/flashcardStore';
+import { translations } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { FlashcardList } from '@/components/flashcards/FlashcardList';
 import { FlashcardStudy } from '@/components/flashcards/FlashcardStudy';
 import { ArrowLeft, BookOpen, Trash2, Download } from 'lucide-react';
 import Link from 'next/link';
-import { Flashcard, Category } from '@/types';
+import { clsx } from 'clsx';
+import { Flashcard, Category, Difficulty } from '@/types';
+
+const CATEGORIES: (Category | 'all')[] = ['all', 'Sales', 'Executive', 'Social', 'Dating'];
+const DIFFICULTIES: (Difficulty | 'all')[] = ['all', 'Beginner', 'Intermediate', 'Advanced'];
 
 export default function FlashcardsPage() {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const { flashcards, clearAll } = useFlashcardStore();
     const [studyMode, setStudyMode] = useState(false);
     const [selectedCards, setSelectedCards] = useState<Flashcard[]>([]);
     const [studyStartIndex, setStudyStartIndex] = useState(0);
     const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
+    const [filterDifficulty, setFilterDifficulty] = useState<Difficulty | 'all'>('all');
 
-    const filteredCards =
-        filterCategory === 'all'
-            ? flashcards
-            : flashcards.filter((card) => card.category === filterCategory);
-
-    const categories: (Category | 'all')[] = ['all', 'Sales', 'Executive', 'Social', 'Dating'];
+    const filteredCards = flashcards.filter((card) => {
+        const matchesCategory = filterCategory === 'all' || card.category === filterCategory;
+        const matchesDifficulty = filterDifficulty === 'all' || card.difficulty === filterDifficulty;
+        return matchesCategory && matchesDifficulty;
+    });
 
     const handleStudyAll = () => {
         setSelectedCards(filteredCards);
@@ -132,13 +137,38 @@ export default function FlashcardsPage() {
                     </div>
                 )}
 
-                {/* Filter */}
-                <div className="space-y-2">
-                    <p className="text-sm font-semibold text-foreground">
-                        {language === 'en' ? 'Category' : 'Categoría'}
-                    </p>
-                    <div className="flex gap-2 flex-wrap">
-                        {categories.map((cat) => (
+                {/* Filters */}
+                <div className="space-y-4 bg-white/5 border border-border/50 p-4 rounded-2xl glass">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            {t('pocketsDifficulty')}
+                        </span>
+                        <div className="flex flex-wrap bg-black/20 p-1 rounded-xl border border-border/50">
+                            {DIFFICULTIES.map((difficulty) => (
+                                <button
+                                    key={difficulty}
+                                    onClick={() => setFilterDifficulty(difficulty)}
+                                    className={clsx(
+                                        'px-4 py-2 rounded-lg text-xs font-bold transition-all',
+                                        filterDifficulty === difficulty
+                                            ? 'bg-primary text-primary-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    )}
+                                >
+                                    {difficulty === 'all'
+                                        ? t('pocketsDifficultyAll')
+                                        : t(`difficulty${difficulty}` as keyof typeof translations.en)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <p className="text-sm font-semibold text-foreground">
+                            {language === 'en' ? 'Category' : 'Categoría'}
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                            {CATEGORIES.map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => setFilterCategory(cat)}
@@ -154,7 +184,8 @@ export default function FlashcardsPage() {
                                         : 'Todas'
                                     : cat}
                             </button>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
 
