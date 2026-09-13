@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const audioFile = formData.get('audio') as File | null;
-        let language = formData.get('language') as string || 'en';
+        const language = formData.get('language') as string || 'en';
 
         console.log('[/api/transcribe] Received audio file:', audioFile?.name, 'Language:', language);
 
