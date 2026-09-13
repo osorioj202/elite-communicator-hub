@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { Message, FeedbackResult, Category } from '@/types';
+import { Message, FeedbackResult, Category, Industry } from '@/types';
 import { getScenario } from '@/data/scenarios';
-import { getIndustry } from '@/data/industries';
+import { getIndustry, INDUSTRIES } from '@/data/industries';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const validIndustries = Object.keys(INDUSTRIES) as Industry[];
 
 const BASE_JSON_STRUCTURE = `
 Provide ONLY a JSON response (no markdown, no extra text) in exactly this structure:
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
 
         const scenario = getScenario(scenarioId);
         const category: Category = scenario?.category ?? 'Sales';
-        const industryData = industry ? getIndustry(industry as any) : null;
+        const industryData = industry && validIndustries.includes(industry as Industry) ? getIndustry(industry as Industry) : null;
 
         const systemPrompt = `
         ${PROMPTS[category]}

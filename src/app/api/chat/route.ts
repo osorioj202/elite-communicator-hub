@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getScenario } from '@/data/scenarios';
-import { getIndustry } from '@/data/industries';
-import { Message } from '@/types';
+import { getIndustry, INDUSTRIES } from '@/data/industries';
+import { Message, Industry } from '@/types';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const validIndustries = Object.keys(INDUSTRIES) as Industry[];
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Scenario not found' }, { status: 404 });
         }
 
-        const industryData = industry ? getIndustry(industry as any) : null;
+        const industryData = industry && validIndustries.includes(industry as Industry) ? getIndustry(industry as Industry) : null;
 
         let systemPrompt = scenario.prospectSystemPrompt;
         
