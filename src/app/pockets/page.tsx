@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { POCKETS } from '@/data/pockets';
 import { PocketCard } from '@/components/pockets/PocketCard';
 import { PocketTypeFilter } from '@/components/pockets/PocketTypeFilter';
-import { Category, PocketType, Pocket } from '@/types';
+import { Category, Difficulty, PocketType, Pocket } from '@/types';
 import { useSessionStore } from '@/store/sessionStore';
 import { useLanguage } from '@/context/LanguageContext';
 import { translations } from '@/lib/translations';
@@ -28,10 +28,12 @@ import {
 } from '@/components/ui/dialog';
 
 const CATEGORIES: (Category | 'All')[] = ['All', 'Sales', 'Executive', 'Social', 'Dating'];
+const DIFFICULTIES: (Difficulty | 'All')[] = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
 export default function PocketsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCat, setSelectedCat] = useState<Category | 'All'>('All');
+    const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | 'All'>('All');
     const [selectedType, setSelectedType] = useState<PocketType | 'All' | 'Saved'>('All');
     const [randomPocket, setRandomPocket] = useState<Pocket | null>(null);
     const [isMounted, setIsMounted] = React.useState(false);
@@ -54,18 +56,19 @@ export default function PocketsPage() {
                 ('instruction' in pocket && (pocket.instruction.en.toLowerCase().includes(s) || pocket.instruction.es.toLowerCase().includes(s)));
 
             const matchesCat = selectedCat === 'All' || pocket.category === selectedCat;
+            const matchesDifficulty = selectedDifficulty === 'All' || pocket.difficulty === selectedDifficulty;
 
             const matchesType =
                 selectedType === 'All' ||
                 (selectedType === 'Saved' ? savedPocketIds.includes(pocket.id) : pocket.type === selectedType);
 
-            return matchesSearch && matchesCat && matchesType;
+            return matchesSearch && matchesCat && matchesDifficulty && matchesType;
         });
-    }, [searchQuery, selectedCat, selectedType, savedPocketIds, isMounted]);
+    }, [searchQuery, selectedCat, selectedDifficulty, selectedType, savedPocketIds, isMounted]);
 
     const handleRandomize = () => {
-        const randomIndex = Math.floor(Math.random() * POCKETS.length);
-        setRandomPocket(POCKETS[randomIndex]);
+        const randomIndex = Math.floor(Math.random() * filteredPockets.length);
+        setRandomPocket(filteredPockets[randomIndex]);
     };
 
     return (
@@ -92,6 +95,7 @@ export default function PocketsPage() {
                         <DialogTrigger>
                             <Button
                                 onClick={handleRandomize}
+                                disabled={!isMounted || filteredPockets.length === 0}
                                 className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 h-12 px-6 rounded-xl shadow-lg shadow-primary/20"
                             >
                                 <Dices className="w-5 h-5" />
@@ -162,6 +166,31 @@ export default function PocketsPage() {
                         </div>
                     </div>
 
+                    {/* Difficulty Tabs */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            {t('pocketsDifficulty')}
+                        </span>
+                        <div className="flex flex-wrap bg-black/20 p-1 rounded-xl border border-border/50">
+                            {DIFFICULTIES.map(difficulty => (
+                                <button
+                                    key={difficulty}
+                                    onClick={() => setSelectedDifficulty(difficulty)}
+                                    className={clsx(
+                                        "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                                        selectedDifficulty === difficulty
+                                            ? "bg-primary text-primary-foreground shadow-sm"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    {difficulty === 'All'
+                                        ? t('pocketsDifficultyAll')
+                                        : t(`difficulty${difficulty}` as keyof typeof translations.en)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <PocketTypeFilter
                         selectedType={selectedType}
                         onTypeChange={setSelectedType}
@@ -192,6 +221,7 @@ export default function PocketsPage() {
                             onClick={() => {
                                 setSearchQuery('');
                                 setSelectedCat('All');
+                                setSelectedDifficulty('All');
                                 setSelectedType('All');
                             }}
                         >
