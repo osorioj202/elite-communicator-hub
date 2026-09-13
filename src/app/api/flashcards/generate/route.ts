@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { Flashcard, FeedbackResult } from '@/types';
+import { Flashcard, FeedbackResult, Category, Difficulty } from '@/types';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -82,7 +82,12 @@ Create flashcards that reinforce these key points.`;
         const parsed = JSON.parse(jsonMatch[0]);
         
         // Convert to Flashcard objects
-        const flashcards: Flashcard[] = parsed.map((card: any, index: number) => ({
+        interface ParsedCard {
+            front: string;
+            back: string;
+        }
+        
+        const flashcards: Flashcard[] = parsed.map((card: ParsedCard, index: number) => ({
             id: `fc-${sessionId}-${index}-${Date.now()}`,
             front: language === 'es'
                 ? { en: card.front, es: card.front }
@@ -90,10 +95,10 @@ Create flashcards that reinforce these key points.`;
             back: language === 'es'
                 ? { en: card.back, es: card.back }
                 : { en: card.back, es: card.back },
-            category: category as any,
+            category: category as Category,
             source: 'feedback' as const,
             sourceId: sessionId,
-            difficulty: difficulty as any,
+            difficulty: difficulty as Difficulty,
             createdAt: Date.now(),
             correctCount: 0,
             reviewCount: 0,

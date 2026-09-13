@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFlashcardStore } from '@/store/flashcardStore';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Flashcard, Category } from '@/types';
 
 export default function FlashcardsPage() {
-    const { language, t } = useLanguage();
+    const { language } = useLanguage();
     const { flashcards, clearAll } = useFlashcardStore();
     const [studyMode, setStudyMode] = useState(false);
     const [selectedCards, setSelectedCards] = useState<Flashcard[]>([]);
@@ -114,10 +114,10 @@ export default function FlashcardsPage() {
                             </p>
                             <p className="text-2xl font-bold text-green-500">
                                 {Math.round(
-                                    flashcards.reduce((sum, c) => {
+                                    flashcards.reduce((sum: number, c: Flashcard) => {
                                         if (c.reviewCount === 0) return sum;
                                         return sum + (c.correctCount / c.reviewCount) * 100;
-                                    }, 0) / flashcards.filter((c) => c.reviewCount > 0).length
+                                    }, 0) / flashcards.filter((c: Flashcard) => c.reviewCount > 0).length
                                 )}
                                 %
                             </p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Flashcard } from '@/types';
+import { Flashcard, LocalizedString } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFlashcardStore } from '@/store/flashcardStore';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ export function FlashcardList({ flashcards, onStudy }: FlashcardListProps) {
     const { language } = useLanguage();
     const { removeFlashcard } = useFlashcardStore();
 
-    const getLR = (str: any) => (language === 'en' ? str.en : str.es);
+    const getLR = (str: LocalizedString) => (language === 'en' ? str.en : str.es);
     const getDifficultyColor = (difficulty: string) => {
         switch (difficulty) {
             case 'Beginner':

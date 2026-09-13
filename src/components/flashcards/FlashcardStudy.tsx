@@ -1,11 +1,11 @@
 'use client';
 
-import { Flashcard } from '@/types';
+import { Flashcard, LocalizedString } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFlashcardStore } from '@/store/flashcardStore';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Repeat2, RotateCcw } from 'lucide-react';
+import { CheckCircle2, XCircle, Repeat2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface FlashcardStudyProps {
@@ -31,7 +31,7 @@ export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
     }
 
     const currentCard = cards[currentIndex];
-    const getLR = (str: any) => (language === 'en' ? str.en : str.es);
+    const getLR = (str: LocalizedString) => (language === 'en' ? str.en : str.es);
     const progress = Math.round(((currentIndex + 1) / cards.length) * 100);
 
     const handleCorrect = () => {

@@ -11,7 +11,7 @@ import { ScoreCard } from '@/components/feedback/ScoreCard';
 import { FeedbackSection } from '@/components/feedback/FeedbackSection';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, RotateCcw, LayoutDashboard, Loader2, BookOpen } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Loader2, BookOpen, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FeedbackPage() {
@@ -146,7 +146,7 @@ export default function FeedbackPage() {
                         <div className="flex gap-2">
                             <Button asChild size="sm" variant="ghost" className="gap-1.5 text-muted-foreground hover:text-foreground">
                                 <Link href={`/practice/${session.scenarioId}`}>
-                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <RefreshCw className="w-3.5 h-3.5" />
                                     {t('back')}
                                 </Link>
                             </Button>
