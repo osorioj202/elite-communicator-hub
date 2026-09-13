@@ -22,9 +22,12 @@ export const useFlashcardStore = create<FlashcardStore>()(
             flashcards: [],
 
             addFlashcard: (card) => {
-                set((state) => ({
-                    flashcards: [card, ...state.flashcards],
-                }));
+                set((state) => {
+                    if (state.flashcards.some((c) => c.id === card.id)) return state;
+                    return {
+                        flashcards: [card, ...state.flashcards],
+                    };
+                });
             },
 
             addFlashcards: (cards) => {

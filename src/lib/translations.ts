@@ -56,6 +56,9 @@ export const translations = {
         pocketsRandom: 'Random Pocket',
         pocketsSearch: 'Search tags, situations, or techniques...',
         pocketsNoResults: 'No pockets found',
+        addFlashcard: 'Add Flashcard',
+        flashcardAdded: 'Added to Flashcards',
+        copyTechnique: 'Copy Technique',
 
         // Expert Tips
         tipsTitle: 'Expert Tips Library',
@@ -174,6 +177,9 @@ export const translations = {
         pocketsRandom: 'Frase Aleatoria',
         pocketsSearch: 'Buscar etiquetas, situaciones o técnicas...',
         pocketsNoResults: 'No se encontraron frases',
+        addFlashcard: 'Crear flashcard',
+        flashcardAdded: 'Añadida a flashcards',
+        copyTechnique: 'Copiar técnica',
 
         // Expert Tips
         tipsTitle: 'Biblioteca de Consejos',

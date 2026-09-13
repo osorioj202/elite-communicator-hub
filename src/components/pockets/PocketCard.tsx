@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Pocket, LocalizedString } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { Pocket, LocalizedString, Flashcard } from '@/types';
 import { useSessionStore } from '@/store/sessionStore';
+import { useFlashcardStore } from '@/store/flashcardStore';
 import { useLanguage } from '@/context/LanguageContext';
 import {
     Quote,
@@ -20,13 +21,147 @@ import {
     ChevronRight,
     MapPin,
     Clock,
-    BarChart3
+    BarChart3,
+    Check,
+    Layers
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Button } from '@/components/ui/button';
 
 interface PocketCardProps {
     pocket: Pocket;
+}
+
+function createFlashcardFromPocket(pocket: Pocket): Flashcard {
+    let front: LocalizedString = { en: '', es: '' };
+    let back: LocalizedString = { en: '', es: '' };
+
+    switch (pocket.type) {
+        case 'phrase':
+            front = {
+                en: `❌ What to avoid: "${pocket.fillerToAvoid.en}"\n\n📌 Situation: ${pocket.situation.en}`,
+                es: `❌ Qué evitar: "${pocket.fillerToAvoid.es}"\n\n📌 Situación: ${pocket.situation.es}`,
+            };
+            back = {
+                en: `✅ Say this instead:\n"${pocket.professionalReplace.en}"`,
+                es: `✅ Qué decir en su lugar:\n"${pocket.professionalReplace.es}"`,
+            };
+            break;
+        case 'cultural':
+            front = {
+                en: `❌ What to avoid in ${pocket.region}:\n"${pocket.avoid.en}"`,
+                es: `❌ Qué evitar en ${pocket.region}:\n"${pocket.avoid.es}"`,
+            };
+            back = {
+                en: `✅ What to do/say instead:\n"${pocket.tip.en}"`,
+                es: `✅ Qué decir/hacer en su lugar:\n"${pocket.tip.es}"`,
+            };
+            break;
+        case 'recovery':
+            front = {
+                en: `❌ What to avoid: Freezing or rambling during:\n"${pocket.trigger.en}"`,
+                es: `❌ Qué evitar: Quedarte en blanco o divagar durante:\n"${pocket.trigger.es}"`,
+            };
+            back = {
+                en: `✅ Say this recovery phrase:\n"${pocket.recoveryPhrase.en}"`,
+                es: `✅ Qué decir en su lugar:\n"${pocket.recoveryPhrase.es}"`,
+            };
+            break;
+        case 'transition':
+            front = {
+                en: `❌ Avoid abrupt jumps from "${pocket.from.en}" to "${pocket.to.en}"`,
+                es: `❌ Qué evitar: Saltos bruscos de "${pocket.from.es}" a "${pocket.to.es}"`,
+            };
+            back = {
+                en: `✅ Bridge phrase to use:\n"${pocket.bridgePhrase.en}"\n\nEx: "${pocket.example.en}"`,
+                es: `✅ Qué decir en su lugar (frase puente):\n"${pocket.bridgePhrase.es}"\n\nEj: "${pocket.example.es}"`,
+            };
+            break;
+        case 'question':
+            front = {
+                en: `❌ Avoid vague or weak statements in:\n"${pocket.situation.en}"`,
+                es: `❌ Qué evitar: Afirmaciones vagas o débiles en:\n"${pocket.situation.es}"`,
+            };
+            back = {
+                en: `✅ Ask this powerful question instead (Goal: ${pocket.purpose.en}):\n"${pocket.question.en}"`,
+                es: `✅ Qué preguntar en su lugar (Objetivo: ${pocket.purpose.es}):\n"${pocket.question.es}"`,
+            };
+            break;
+        case 'closing':
+            front = {
+                en: `❌ Avoid weak, hesitant closing for:\n${pocket.objective.en}`,
+                es: `❌ Qué evitar: Cierres débiles o dubitativos para:\n${pocket.objective.es}`,
+            };
+            back = {
+                en: `✅ Use this closing phrase:\n"${pocket.phrase.en}"`,
+                es: `✅ Qué decir en su lugar:\n"${pocket.phrase.es}"`,
+            };
+            break;
+        case 'listening':
+            front = {
+                en: `❌ Avoid passive listening or interrupting in:\n${pocket.technique.en}`,
+                es: `❌ Qué evitar: Escucha pasiva o interrumpir en:\n${pocket.technique.es}`,
+            };
+            back = {
+                en: `✅ Say/apply this instead:\n"${pocket.examplePhrase.en}"\n\n(${pocket.howToApply.en})`,
+                es: `✅ Qué decir en su lugar:\n"${pocket.examplePhrase.es}"\n\n(${pocket.howToApply.es})`,
+            };
+            break;
+        case 'delivery':
+            front = {
+                en: `❌ Avoid poor delivery habits in:\n${pocket.focusArea.en}`,
+                es: `❌ Qué evitar: Malos hábitos de entrega en:\n${pocket.focusArea.es}`,
+            };
+            back = {
+                en: `✅ How to deliver instead:\n${pocket.instruction.en}`,
+                es: `✅ Qué hacer en su lugar:\n${pocket.instruction.es}`,
+            };
+            break;
+        case 'confidence':
+            front = {
+                en: `❌ Avoid self-doubt and hesitation in:\n${pocket.title.en}`,
+                es: `❌ Qué evitar: Dudas e inseguridad en:\n${pocket.title.es}`,
+            };
+            back = {
+                en: `✅ Mindset & action to apply:\n${pocket.instruction.en}`,
+                es: `✅ Qué hacer en su lugar:\n${pocket.instruction.es}`,
+            };
+            break;
+        case 'story':
+            front = {
+                en: `❌ Avoid dry facts without emotion in:\n${pocket.title.en} (${pocket.purpose.en})`,
+                es: `❌ Qué evitar: Datos secos y sin emoción en:\n${pocket.title.es} (${pocket.purpose.es})`,
+            };
+            back = {
+                en: `✅ Story to tell:\n"${pocket.story.en}"\n\n🎯 Key Takeaway: ${pocket.keyTakeaway.en}`,
+                es: `✅ Historia a contar en su lugar:\n"${pocket.story.es}"\n\n🎯 Conclusión clave: ${pocket.keyTakeaway.es}`,
+            };
+            break;
+        case 'user-saved':
+        default:
+            front = {
+                en: `❌ What to avoid in practice: Pocket #${pocket.id}`,
+                es: `❌ Qué evitar en la práctica: Tarjeta #${pocket.id}`,
+            };
+            back = {
+                en: `✅ What to do/say instead:\n${pocket.customNote || 'Practice this communication technique.'}`,
+                es: `✅ Qué hacer/decir en su lugar:\n${pocket.customNote || 'Practica esta técnica de comunicación.'}`,
+            };
+            break;
+    }
+
+    return {
+        id: `fc-pocket-${pocket.id}`,
+        front,
+        back,
+        category: pocket.category,
+        source: 'pocket',
+        sourceId: pocket.id,
+        difficulty: pocket.difficulty,
+        createdAt: Date.now(),
+        correctCount: 0,
+        reviewCount: 0,
+    };
 }
 
 const typeConfig = {
@@ -45,10 +180,24 @@ const typeConfig = {
 
 export function PocketCard({ pocket }: PocketCardProps) {
     const { toggleSavePocket, isPocketSaved } = useSessionStore();
-    const { language } = useLanguage();
+    const { addFlashcard, getFlashcard } = useFlashcardStore();
+    const { language, t } = useLanguage();
     const saved = isPocketSaved(pocket.id);
     const config = typeConfig[pocket.type];
     const Icon = config.icon;
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const flashcardId = `fc-pocket-${pocket.id}`;
+    const isFlashcardAdded = isMounted && !!getFlashcard(flashcardId);
+
+    const handleAddFlashcard = () => {
+        if (getFlashcard(flashcardId)) return;
+        addFlashcard(createFlashcardFromPocket(pocket));
+    };
 
     // Helper to get localized text
     const getLR = (str: LocalizedString | string | undefined) => {
@@ -243,23 +392,41 @@ export function PocketCard({ pocket }: PocketCardProps) {
             </div>
 
             {/* Footer / Action */}
-            <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-[10px] h-7 px-2 hover:bg-primary/10 hover:text-primary"
-                    onClick={() => navigator.clipboard.writeText(
-                        pocket.type === 'phrase' ? getLR(pocket.professionalReplace) :
-                            pocket.type === 'question' ? getLR(pocket.question) :
-                                pocket.type === 'closing' ? getLR(pocket.phrase) :
-                                    pocket.type === 'recovery' ? getLR(pocket.recoveryPhrase) :
-                                        pocket.type === 'listening' ? getLR(pocket.examplePhrase) :
-                                            pocket.type === 'transition' ? getLR(pocket.bridgePhrase) :
-                                                'instruction' in pocket ? getLR(pocket.instruction) : pocket.id
-                    )}
-                >
-                    Copy Technique
-                </Button>
+            <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 flex-wrap">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[10px] h-7 px-2 hover:bg-primary/10 hover:text-primary"
+                        onClick={() => navigator.clipboard.writeText(
+                            pocket.type === 'phrase' ? getLR(pocket.professionalReplace) :
+                                pocket.type === 'question' ? getLR(pocket.question) :
+                                    pocket.type === 'closing' ? getLR(pocket.phrase) :
+                                        pocket.type === 'recovery' ? getLR(pocket.recoveryPhrase) :
+                                            pocket.type === 'listening' ? getLR(pocket.examplePhrase) :
+                                                pocket.type === 'transition' ? getLR(pocket.bridgePhrase) :
+                                                    'instruction' in pocket ? getLR(pocket.instruction) : pocket.id
+                        )}
+                    >
+                        {t('copyTechnique')}
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={clsx(
+                            "text-[10px] h-7 px-2 gap-1",
+                            isFlashcardAdded
+                                ? "text-emerald-400 hover:text-emerald-400 hover:bg-emerald-400/10"
+                                : "hover:bg-primary/10 hover:text-primary"
+                        )}
+                        onClick={handleAddFlashcard}
+                        disabled={isFlashcardAdded}
+                        aria-label={isFlashcardAdded ? t('flashcardAdded') : t('addFlashcard')}
+                    >
+                        {isFlashcardAdded ? <Check className="w-3 h-3" /> : <Layers className="w-3 h-3" />}
+                        {isFlashcardAdded ? t('flashcardAdded') : t('addFlashcard')}
+                    </Button>
+                </div>
 
                 {pocket.relatedScenarioIds && pocket.relatedScenarioIds.length > 0 && (
                     <div className="flex items-center gap-1 text-[9px] text-muted-foreground opacity-50">
