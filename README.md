@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SDR Voice Coach
+
+A Progressive Web App (PWA) that helps Sales Development Representatives (SDRs) practice cold calling and objection handling with an AI voice coach.
+
+## Features
+
+- 🎙️ **Real Voice Practice**: Speak naturally with AI prospects using voice interaction.
+- 🤖 **AI Personas**: Practice against different scenarios like Cold Calls, Gatekeepers, and Price Objections.
+- 📊 **Instant Feedback**: Get detailed scoring and improvements after every session.
+- 🔒 **Privacy Focused**: Audio is processed for transcription but not stored permanently.
+- 📱 **PWA Ready**: Installable on mobile and desktop.
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS + Shadcn UI
+- **AI**: OpenAI GPT-4o & Whisper
+- **State**: Zustand (persisted locally)
+- **Deployment**: Vercel (recommended)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- An OpenAI API Key
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd sdr-voice-coach
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. Set up environment variables:
+   - Rename `.env.example` to `.env.local` (or create a new `.env.local` file).
+   - Add your OpenAI API Key:
+     ```env
+     OPENAI_API_KEY=sk-your-api-key-here
+     ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+- `src/app`: Next.js App Router pages and API routes.
+- `src/components`: Reusable UI components.
+- `src/store`: Zustand state management.
+- `src/data`: Scenario definitions and prompts.
+- `src/types`: TypeScript interfaces.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
