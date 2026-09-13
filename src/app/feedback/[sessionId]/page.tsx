@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSessionStore } from '@/store/sessionStore';
+import { useFlashcardStore } from '@/store/flashcardStore';
 import { FeedbackResult, SessionResult, LocalizedString } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useIndustry } from '@/context/IndustryContext';
@@ -10,7 +11,7 @@ import { ScoreCard } from '@/components/feedback/ScoreCard';
 import { FeedbackSection } from '@/components/feedback/FeedbackSection';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, RotateCcw, LayoutDashboard, Loader2 } from 'lucide-react';
+import { ArrowLeft, RotateCcw, LayoutDashboard, Loader2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FeedbackPage() {
@@ -18,6 +19,7 @@ export default function FeedbackPage() {
     const router = useRouter();
     const sessionId = params.sessionId as string;
     const { getResult, saveResult } = useSessionStore();
+    const { addFlashcards } = useFlashcardStore();
     const { language, t } = useLanguage();
     const { selectedIndustry } = useIndustry();
 
@@ -31,6 +33,7 @@ export default function FeedbackPage() {
     const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isGeneratingFlashcards, setIsGeneratingFlashcards] = useState(false);
 
     useEffect(() => {
         const result = getResult(sessionId);
@@ -79,6 +82,41 @@ export default function FeedbackPage() {
 
     const formatDuration = (s: number) =>
         `${Math.floor(s / 60)}m ${s % 60}s`;
+
+    const handleCreateFlashcards = async () => {
+        if (!session || !feedback) return;
+        setIsGeneratingFlashcards(true);
+
+        try {
+            const res = await fetch('/api/flashcards/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    feedback,
+                    sessionId: session.id,
+                    category: session.scenarioId,
+                    difficulty: 'Intermediate',
+                    language,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to generate flashcards');
+            }
+
+            const data = await res.json();
+            if (data.flashcards && Array.isArray(data.flashcards)) {
+                addFlashcards(data.flashcards);
+                // Redirect to flashcards page
+                router.push('/flashcards');
+            }
+        } catch (err) {
+            console.error('Error generating flashcards:', err);
+            alert(language === 'en' ? 'Failed to generate flashcards' : 'Error al generar flashcards');
+        } finally {
+            setIsGeneratingFlashcards(false);
+        }
+    };
 
     return (
         <main className="min-h-screen pt-20 pb-12">
@@ -148,6 +186,20 @@ export default function FeedbackPage() {
                 {!isLoading && feedback && (
                     <>
                         <ScoreCard score={feedback.score} />
+                        <Button
+                            onClick={handleCreateFlashcards}
+                            disabled={isGeneratingFlashcards}
+                            className="w-full gap-2 bg-primary"
+                        >
+                            <BookOpen className="w-4 h-4" />
+                            {isGeneratingFlashcards
+                                ? language === 'en'
+                                    ? 'Generating Flashcards...'
+                                    : 'Generando Flashcards...'
+                                : language === 'en'
+                                    ? 'Create Flashcards from Feedback'
+                                    : 'Crear Flashcards del Feedback'}
+                        </Button>
                         <FeedbackSection feedback={feedback} />
                     </>
                 )}

@@ -28,6 +28,20 @@ export interface FeedbackResult {
     rewrites: Array<{ original: string; better: string }>;
 }
 
+export interface Flashcard {
+    id: string;
+    front: LocalizedString; // Pregunta/concepto
+    back: LocalizedString; // Respuesta/explicación
+    category: Category;
+    source: 'feedback' | 'pocket' | 'tip'; // De dónde proviene
+    sourceId?: string; // ID de la sesión/pocket/tip de origen
+    difficulty: Difficulty;
+    createdAt: number;
+    lastReviewedAt?: number;
+    correctCount: number; // Cuántas veces ha sido respondida correctamente
+    reviewCount: number; // Total de revisiones
+}
+
 export interface SessionResult {
     id: string;
     scenarioId: string;

@@ -7,7 +7,8 @@ import {
     LayoutDashboard,
     Target,
     Lightbulb,
-    Sparkles
+    Sparkles,
+    BookOpen
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -24,6 +25,7 @@ export function Navbar() {
         { href: '/scenarios', label: t('navPractice'), icon: Target },
         { href: '/tips', label: t('navExpertTips'), icon: Lightbulb },
         { href: '/pockets', label: t('navPockets'), icon: Sparkles },
+        { href: '/flashcards', label: t('navFlashcards'), icon: BookOpen },
         { href: '/dashboard', label: t('navDashboard'), icon: LayoutDashboard },
     ];
 
