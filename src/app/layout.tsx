@@ -30,14 +30,17 @@ export const viewport = {
 };
 
 import { LanguageProvider } from '@/context/LanguageContext';
+import { IndustryProvider } from '@/context/IndustryContext';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
         <LanguageProvider>
-          <Navbar />
-          {children}
+          <IndustryProvider>
+            <Navbar />
+            {children}
+          </IndustryProvider>
         </LanguageProvider>
       </body>
     </html>

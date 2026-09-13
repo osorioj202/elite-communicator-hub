@@ -4,10 +4,12 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionStore } from '@/store/sessionStore';
 import { useLanguage } from '@/context/LanguageContext';
+import { useIndustry } from '@/context/IndustryContext';
 import { getScenario } from '@/data/scenarios';
 import { MicButton } from '@/components/practice/MicButton';
 import { AudioWave } from '@/components/practice/AudioWave';
 import { TranscriptFeed } from '@/components/practice/TranscriptFeed';
+import { IndustrySelector } from '@/components/practice/IndustrySelector';
 import { Button } from '@/components/ui/button';
 import { PhoneOff, AlertCircle, ArrowLeft, Lightbulb, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -39,6 +41,7 @@ export default function PracticePage({ params }: PracticePageProps) {
         saveResult,
     } = useSessionStore();
     const { language, t } = useLanguage();
+    const { selectedIndustry } = useIndustry();
 
     const [micError, setMicError] = useState<string | null>(null);
     const [sessionStarted, setSessionStarted] = useState(false);
@@ -104,7 +107,7 @@ export default function PracticePage({ params }: PracticePageProps) {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: updatedMessages, scenarioId: scenario?.id, language }),
+                    body: JSON.stringify({ messages: updatedMessages, scenarioId: scenario?.id, language, industry: selectedIndustry }),
                 });
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
@@ -117,7 +120,7 @@ export default function PracticePage({ params }: PracticePageProps) {
                 setIsAIThinking(false);
             }
         },
-        [scenario, addMessage, setIsAIThinking, playAIAudio, language]
+        [scenario, addMessage, setIsAIThinking, playAIAudio, language, selectedIndustry]
     );
 
     // Start session: AI speaks first
@@ -142,7 +145,7 @@ export default function PracticePage({ params }: PracticePageProps) {
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: [], scenarioId: scenario.id, language }),
+                body: JSON.stringify({ messages: [], scenarioId: scenario.id, language, industry: selectedIndustry }),
             });
             const data = await res.json();
             if (!data.error) {
@@ -155,7 +158,7 @@ export default function PracticePage({ params }: PracticePageProps) {
         } catch {
             setIsAIThinking(false);
         }
-    }, [scenario, startSession, addMessage, setIsAIThinking, playAIAudio, language]);
+    }, [scenario, startSession, addMessage, setIsAIThinking, playAIAudio, language, selectedIndustry]);
 
     // Recording handlers
     const startRecording = useCallback(() => {
@@ -286,6 +289,12 @@ export default function PracticePage({ params }: PracticePageProps) {
                                 </li>
                             ))}
                         </ul>
+
+                        {/* Industry Selector */}
+                        <div className="w-full max-w-3xl px-4">
+                            <IndustrySelector />
+                        </div>
+
                         <Button
                             onClick={handleStartCall}
                             size="lg"

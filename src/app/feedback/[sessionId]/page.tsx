@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSessionStore } from '@/store/sessionStore';
 import { FeedbackResult, SessionResult, LocalizedString } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
+import { useIndustry } from '@/context/IndustryContext';
 import { ScoreCard } from '@/components/feedback/ScoreCard';
 import { FeedbackSection } from '@/components/feedback/FeedbackSection';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ export default function FeedbackPage() {
     const sessionId = params.sessionId as string;
     const { getResult, saveResult } = useSessionStore();
     const { language, t } = useLanguage();
+    const { selectedIndustry } = useIndustry();
 
     const getLR = (str: LocalizedString | string | undefined) => {
         if (!str) return '';
@@ -50,7 +52,7 @@ export default function FeedbackPage() {
                 const res = await fetch('/api/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transcript: result.transcript, scenarioId: result.scenarioId, language }),
+                    body: JSON.stringify({ transcript: result.transcript, scenarioId: result.scenarioId, language, industry: selectedIndustry }),
                 });
                 
                 if (!res.ok) {
@@ -73,7 +75,7 @@ export default function FeedbackPage() {
                 setIsLoading(false);
             }
         })();
-    }, [sessionId, getResult, router, saveResult, language]);
+    }, [sessionId, getResult, router, saveResult, language, selectedIndustry]);
 
     const formatDuration = (s: number) =>
         `${Math.floor(s / 60)}m ${s % 60}s`;

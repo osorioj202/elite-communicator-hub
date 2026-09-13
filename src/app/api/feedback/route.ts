@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { Message, FeedbackResult, Category } from '@/types';
 import { getScenario } from '@/data/scenarios';
+import { getIndustry } from '@/data/industries';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -55,10 +56,11 @@ const PROMPTS: Record<Category, string> = {
 
 export async function POST(req: NextRequest) {
     try {
-        const { transcript, scenarioId, language } = (await req.json()) as {
+        const { transcript, scenarioId, language, industry } = (await req.json()) as {
             transcript: Message[];
             scenarioId: string;
             language?: string;
+            industry?: string;
         };
 
         if (!transcript || transcript.length === 0) {
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
 
         const scenario = getScenario(scenarioId);
         const category: Category = scenario?.category ?? 'Sales';
+        const industryData = industry ? getIndustry(industry as any) : null;
 
         const systemPrompt = `
         ${PROMPTS[category]}
@@ -74,6 +77,8 @@ export async function POST(req: NextRequest) {
         ${BASE_JSON_STRUCTURE}
         
         Be specific and constructive. For rewrites, pick real sentences from the transcript and show a genuinely better alternative.
+        
+        ${industryData && industry !== 'general' ? `INDUSTRY CONTEXT: This conversation took place in the ${language === 'es' ? industryData.name.es : industryData.name.en} industry. The user was trying to address these industry pain points: ${industryData.painPoints.map(p => language === 'es' ? p.es : p.en).join(', ')}. Evaluate the call with this context in mind.` : ''}
         
         ${language === 'es' ? 'CRITICAL: Provide ALL feedback (strengths, improvements, rewrites) in Spanish.' : ''}
         `;

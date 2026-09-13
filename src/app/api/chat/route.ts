@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getScenario } from '@/data/scenarios';
+import { getIndustry } from '@/data/industries';
 import { Message } from '@/types';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
     try {
-        const { messages, scenarioId, language } = (await req.json()) as {
+        const { messages, scenarioId, language, industry } = (await req.json()) as {
             messages: Message[];
             scenarioId: string;
             language?: string;
+            industry?: string;
         };
 
         const scenario = getScenario(scenarioId);
@@ -18,7 +20,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Scenario not found' }, { status: 404 });
         }
 
+        const industryData = industry ? getIndustry(industry as any) : null;
+
         let systemPrompt = scenario.prospectSystemPrompt;
+        
+        // Add industry context if specified
+        if (industryData && industry !== 'general') {
+            systemPrompt += `\n\nINDUSTRY CONTEXT: ${language === 'es' ? industryData.keyContext.es : industryData.keyContext.en}`;
+        }
+        
         if (language === 'es') {
             systemPrompt += "\n\nCRITICAL: The user wants to practice in Spanish. Please conduct the entire conversation and provide all feedback in Spanish. Maintain your persona but translate your persona's voice and style to Spanish.";
         }

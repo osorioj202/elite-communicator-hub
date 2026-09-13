@@ -1,5 +1,6 @@
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 export type Category = 'Sales' | 'Executive' | 'Social' | 'Dating';
+export type Industry = 'tech' | 'real-estate' | 'renewable-energy' | 'finance' | 'healthcare' | 'general';
 
 export type LocalizedString = { en: string; es: string };
 
