@@ -9,7 +9,7 @@ import { Trash2, Play } from 'lucide-react';
 
 interface FlashcardListProps {
     flashcards: Flashcard[];
-    onStudy: (cards: Flashcard[]) => void;
+    onStudy: (card: Flashcard) => void;
 }
 
 export function FlashcardList({ flashcards, onStudy }: FlashcardListProps) {
@@ -85,7 +85,7 @@ export function FlashcardList({ flashcards, onStudy }: FlashcardListProps) {
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                         <Button
-                            onClick={() => onStudy([card])}
+                            onClick={() => onStudy(card)}
                             size="sm"
                             variant="default"
                             className="gap-1"

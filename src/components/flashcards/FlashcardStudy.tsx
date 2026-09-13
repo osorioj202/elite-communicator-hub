@@ -3,22 +3,32 @@
 import { Flashcard, LocalizedString } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useFlashcardStore } from '@/store/flashcardStore';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, Repeat2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface FlashcardStudyProps {
     cards: Flashcard[];
+    initialIndex?: number;
     onClose?: () => void;
 }
 
-export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
+export function FlashcardStudy({ cards, initialIndex = 0, onClose }: FlashcardStudyProps) {
     const { language } = useLanguage();
     const { markReviewed } = useFlashcardStore();
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const validInitialIndex = Math.min(initialIndex, Math.max(cards.length - 1, 0));
+    const [currentIndex, setCurrentIndex] = useState(validInitialIndex);
     const [isFlipped, setIsFlipped] = useState(false);
     const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+    const [isSessionComplete, setIsSessionComplete] = useState(false);
+
+    useEffect(() => {
+        setCurrentIndex(validInitialIndex);
+        setIsFlipped(false);
+        setStats({ correct: 0, incorrect: 0 });
+        setIsSessionComplete(false);
+    }, [cards, validInitialIndex]);
 
     if (cards.length === 0) {
         return (
@@ -34,15 +44,19 @@ export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
     const getLR = (str: LocalizedString) => (language === 'en' ? str.en : str.es);
     const progress = Math.round(((currentIndex + 1) / cards.length) * 100);
 
-    const handleCorrect = () => {
-        markReviewed(currentCard.id, true);
-        setStats((s) => ({ ...s, correct: s.correct + 1 }));
-        goNext();
-    };
+    const handleReview = (correct: boolean) => {
+        markReviewed(currentCard.id, correct);
+        setStats((s) => ({
+            ...s,
+            correct: s.correct + (correct ? 1 : 0),
+            incorrect: s.incorrect + (correct ? 0 : 1),
+        }));
 
-    const handleIncorrect = () => {
-        markReviewed(currentCard.id, false);
-        setStats((s) => ({ ...s, incorrect: s.incorrect + 1 }));
+        if (currentIndex === cards.length - 1) {
+            setIsSessionComplete(true);
+            return;
+        }
+
         goNext();
     };
 
@@ -61,12 +75,13 @@ export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
     };
 
     const reset = () => {
-        setCurrentIndex(0);
+        setCurrentIndex(validInitialIndex);
         setIsFlipped(false);
         setStats({ correct: 0, incorrect: 0 });
+        setIsSessionComplete(false);
     };
 
-    const isComplete = currentIndex >= cards.length - 1;
+    const isComplete = isSessionComplete;
 
     return (
         <div className="space-y-6">
@@ -154,7 +169,7 @@ export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
             ) : (
                 <div className="grid grid-cols-2 gap-4">
                     <Button
-                        onClick={handleIncorrect}
+                        onClick={() => handleReview(false)}
                         variant="outline"
                         className="gap-2 text-destructive hover:text-destructive"
                         disabled={!isFlipped}
@@ -163,7 +178,7 @@ export function FlashcardStudy({ cards, onClose }: FlashcardStudyProps) {
                         {language === 'en' ? 'Incorrect' : 'Incorrecto'}
                     </Button>
                     <Button
-                        onClick={handleCorrect}
+                        onClick={() => handleReview(true)}
                         variant="default"
                         className="gap-2 bg-green-600 hover:bg-green-700"
                         disabled={!isFlipped}

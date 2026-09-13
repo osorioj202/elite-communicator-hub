@@ -15,6 +15,7 @@ export default function FlashcardsPage() {
     const { flashcards, clearAll } = useFlashcardStore();
     const [studyMode, setStudyMode] = useState(false);
     const [selectedCards, setSelectedCards] = useState<Flashcard[]>([]);
+    const [studyStartIndex, setStudyStartIndex] = useState(0);
     const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
 
     const filteredCards =
@@ -26,11 +27,13 @@ export default function FlashcardsPage() {
 
     const handleStudyAll = () => {
         setSelectedCards(filteredCards);
+        setStudyStartIndex(0);
         setStudyMode(true);
     };
 
-    const handleStudyCard = (cards: Flashcard[]) => {
-        setSelectedCards(cards);
+    const handleStudyCard = (card: Flashcard) => {
+        setSelectedCards(filteredCards);
+        setStudyStartIndex(Math.max(0, filteredCards.findIndex((item) => item.id === card.id)));
         setStudyMode(true);
     };
 
@@ -66,7 +69,11 @@ export default function FlashcardsPage() {
                             {selectedCards.length !== 1 ? 's' : ''}
                         </p>
                     </div>
-                    <FlashcardStudy cards={selectedCards} onClose={() => setStudyMode(false)} />
+                    <FlashcardStudy
+                        cards={selectedCards}
+                        initialIndex={studyStartIndex}
+                        onClose={() => setStudyMode(false)}
+                    />
                 </div>
             </main>
         );
